@@ -5,6 +5,7 @@
 #include <vector>
 #include "extensions.h"
 #include "QueueFamilyIndices.h"
+#include "SwapChainSupportDetails.h"
 
 #define VK_CHECK_RESULT(f) {																						\
 	if (f != VK_SUCCESS) {std::cerr << "Fatal : VkResult is " << f << "\" in " << __FILE__ << " at line " << __LINE__ << std::endl;	\
@@ -27,6 +28,12 @@ private:
 	void setupDebugCallback();
 	void createInstance();
 	bool isDeviceSuitable(VkPhysicalDevice device);
+	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	void createSwapChain();
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	void pickPhysicalDevice();
 	void createLogicalDevice();
@@ -46,6 +53,10 @@ private:
 		"VK_LAYER_LUNARG_standard_validation"
 	};
 
+	const std::vector<const char*> deviceExtensions = {
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
 #else
@@ -60,5 +71,9 @@ private:
 	VkQueue									graphicsQueue			=VK_NULL_HANDLE;
 	VkQueue									presentQueue			=VK_NULL_HANDLE;
 	VkSurfaceKHR							surface					=VK_NULL_HANDLE;
+	VkSwapchainKHR							swapChain				=VK_NULL_HANDLE;
+	std::vector<VkImage>					swapChainImages;
+	VkFormat								swapChainImageFormat;
+	VkExtent2D								swapChainExtent;
 };
 
