@@ -34,6 +34,9 @@ private:
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 	void createSwapChain();
+	void createImageView();
+	void createGraphicsPipeline();
+	void createRenderPass();
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	void pickPhysicalDevice();
 	void createLogicalDevice();
@@ -75,5 +78,9 @@ private:
 	std::vector<VkImage>					swapChainImages;
 	VkFormat								swapChainImageFormat;
 	VkExtent2D								swapChainExtent;
+	std::vector<VkImageView>				swapChainImageViews;
+	VkRenderPass							renderPass				=VK_NULL_HANDLE;
+	VkPipelineLayout						pipelineLayout			=VK_NULL_HANDLE;
+	VkPipeline								graphicsPipeline		=VK_NULL_HANDLE;
 };
 
