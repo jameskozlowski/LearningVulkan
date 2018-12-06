@@ -37,6 +37,9 @@ private:
 	void createImageView();
 	void createGraphicsPipeline();
 	void createRenderPass();
+	void createFramebuffers();
+	void createCommandPool();
+	void createCommandBuffers();
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	void pickPhysicalDevice();
 	void createLogicalDevice();
@@ -82,5 +85,8 @@ private:
 	VkRenderPass							renderPass				=VK_NULL_HANDLE;
 	VkPipelineLayout						pipelineLayout			=VK_NULL_HANDLE;
 	VkPipeline								graphicsPipeline		=VK_NULL_HANDLE;
+	std::vector<VkFramebuffer>				swapChainFramebuffers;
+	VkCommandPool							commandPool				=VK_NULL_HANDLE;
+	std::vector<VkCommandBuffer>				commandBuffers;
 };
 
