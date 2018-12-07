@@ -40,11 +40,13 @@ private:
 	void createFramebuffers();
 	void createCommandPool();
 	void createCommandBuffers();
+	void createSemaphores();
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	void pickPhysicalDevice();
 	void createLogicalDevice();
 	void createSurfaceDevice();
 	void mainLoop();
+	void drawFrame();
 	void cleanup();
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -87,6 +89,8 @@ private:
 	VkPipeline								graphicsPipeline		=VK_NULL_HANDLE;
 	std::vector<VkFramebuffer>				swapChainFramebuffers;
 	VkCommandPool							commandPool				=VK_NULL_HANDLE;
-	std::vector<VkCommandBuffer>				commandBuffers;
+	std::vector<VkCommandBuffer>			commandBuffers;
+	VkSemaphore								imageAvailableSemaphore;
+	VkSemaphore								renderFinishedSemaphore;
 };
 

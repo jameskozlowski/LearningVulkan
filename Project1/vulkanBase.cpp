@@ -96,6 +96,7 @@ void vulkanBase::initVulkan()
 	createFramebuffers();
 	createCommandPool();
 	createCommandBuffers();
+	createSemaphores();
 }
 
 bool vulkanBase::checkValidationLayerSupport()
@@ -621,6 +622,16 @@ void vulkanBase::createCommandBuffers()
 
 }
 
+void vulkanBase::createSemaphores()
+{
+	VkSemaphoreCreateInfo semaphoreInfo = {};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	VkResult result = vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore);
+	VK_CHECK_RESULT(result);
+	result = vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore);
+	VK_CHECK_RESULT(result);
+}
+
 
 QueueFamilyIndices vulkanBase::findQueueFamilies(VkPhysicalDevice device)
 {
@@ -729,11 +740,58 @@ void vulkanBase::mainLoop()
 	while (!glfwWindowShouldClose(window)) 
 	{
 		glfwPollEvents();
+		drawFrame();
 	}
+	vkDeviceWaitIdle(device);
+}
+
+void vulkanBase::drawFrame()
+{
+	uint32_t imageIndex;
+	vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+	VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
+	VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+	VkPipelineStageFlags  waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffers[imageIndex];	
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+	VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	VK_CHECK_RESULT(result);
+
+	VkSubpassDependency dependency = {};
+	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependency.dstSubpass = 0;
+	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	
+	VkRenderPassCreateInfo renderPassInfo = {};
+	renderPassInfo.dependencyCount = 1;
+	renderPassInfo.pDependencies = &dependency;
+	
+	VkSwapchainKHR swapChains[] = { swapChain };
+	VkPresentInfoKHR presentInfo = {};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapChains;
+	presentInfo.pImageIndices = &imageIndex;
+	presentInfo.pResults = nullptr;
+
+	vkQueuePresentKHR(presentQueue, &presentInfo);
 }
 
 void vulkanBase::cleanup()
 {
+	vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
+	vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
 	vkDestroyCommandPool(device, commandPool, nullptr);
 	for (auto framebuffer : swapChainFramebuffers)
 		vkDestroyFramebuffer(device, framebuffer, nullptr);
